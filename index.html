@@ -5,12 +5,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokemon</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>  <!--js animations library-->
     <script src="./data/collisions.js"></script>
+    <script src="./data/battleZonesData.js"></script>
     <script src="classes.js"></script>
     <script src="index.js" defer></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas></canvas>
+    <div id = parentBattleDiv>
+        <div id = battleTransitionBlack></div> <!--battle transition animation-->
+        <canvas></canvas>
+    </div>
 </body>
 </html>

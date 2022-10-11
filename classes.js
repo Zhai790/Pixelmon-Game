@@ -1,5 +1,5 @@
 class Sprite {
-    constructor({position, velocity, image, frames = {max: 1}, sprites = []}) {  //use object as a parameter so order of values don't matter
+    constructor({position, image, frames = {max: 1}, sprites = []}) {  //use object as a parameter so order of values don't matter
         this.position = position;
         this.image = image;
         this.frames = {...frames, val: 0, elapsed: 0};  //val: tracks character animation frame, elapsed: tracks time inbtwn each frame
@@ -53,7 +53,7 @@ class Boundary {
     }
 
     draw() {
-        ctxt.fillStyle = 'rgba(255, 0, 0, 0)';
+        ctxt.fillStyle = 'rgba(255, 0, 0, 1)';
         ctxt.fillRect(this.position.x, this.position.y, this.width, this.height);
     }
 }
