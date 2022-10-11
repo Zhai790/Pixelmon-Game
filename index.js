@@ -22,6 +22,15 @@ for(let i = 0; i < collisions.length; i+=70) { //70 = 70 cubes per row in Tiled
     collisionsMap.push(collisions.slice(i, i+70));  
 }
 
+/*
+---create battle zones ---
+- same procedure as map
+*/
+const battleZonesMap = []; 
+for(let i = 0; i < battleZonesData.length; i+=70) { 
+    battleZonesMap.push(battleZonesData.slice(i, i+70));  
+}
+
 const offset = {
     x: -175,
     y: -800
@@ -32,6 +41,20 @@ for(let i = 0; i < collisionsMap.length; i++) {
     for(let j = 0; j < collisionsMap[i].length; j++) {
         if(collisionsMap[i][j] === 1025) {
             boundaries.push(new Boundary({
+                position: {
+                    x: j * Boundary.width + offset.x,
+                    y: i * Boundary.height + offset.y
+                } 
+            }))
+        }
+    }
+}
+
+const battleZones = [];
+for(let i = 0; i < battleZonesMap.length; i++) {
+    for(let j = 0; j < battleZonesMap[i].length; j++) {
+        if(battleZonesMap[i][j] === 1025) {
+            battleZones.push(new Boundary({
                 position: {
                     x: j * Boundary.width + offset.x,
                     y: i * Boundary.height + offset.y
@@ -112,7 +135,7 @@ const keys = {
 /*
 organizes all moveable objects into one object
 */
-const movables = [background, ...boundaries, foreground];   //spreads all elements of boundaries into movables
+const movables = [background, ...boundaries, foreground, ...battleZones];   //spreads all elements of boundaries into movables
 
 /*
 check whether sprites are colliding
@@ -128,15 +151,76 @@ function rectangularCollision({rectangle1, rectangle2}) {
     );
 }
 
+//player stops once battle commences
+
+
+const battle = {
+    initiated: false
+};  
+
 /*main function*/
 function animate() {    
-    window.requestAnimationFrame(animate);  //schedules another iteration of function
+    const animationId = window.requestAnimationFrame(animate);  //schedules another iteration of function
     background.draw();
     boundaries.forEach(boundary => {
         boundary.draw();
     });
+    battleZones.forEach(battleZone => {
+        battleZone.draw();
+    })
     player.draw();
     foreground.draw();
+
+    if(battle.initiated) {  //battle occured: skips rest of code aka no movement or additional battle seqs
+        return;
+    }
+
+    //---battle occurance---
+    if(keys.w.pressed || keys.a.pressed || keys.s.pressed || keys.d.pressed) {
+        for(let i = 0; i < battleZones.length; i++) {    
+            const battleZone = battleZones[i];
+            const overlappingArea = (Math.min(player.position.x + player.width, battleZone.position.x + battleZone.width) - Math.max(player.position.x, battleZone.position.x)) * (Math.min(player.position.y + player.width, battleZone.position.y + battleZone.width) - Math.max(player.position.y, battleZone.position.y)); 
+            if(rectangularCollision({
+                rectangle1: player, 
+                rectangle2: {...battleZone, position: {   
+                    x: battleZone.position.x,
+                    y: battleZone.position.y    
+                }}
+            }) && overlappingArea > player.width * player.height / 2) { //edge case: player walks along edge of zone (hitbox reg)
+                if(Math.random() < 0.05) {  //battle occurance probability
+                    console.log("battle");
+
+                    //deactivate current animation loop
+                    window.cancelAnimationFrame(animationId);
+
+                    battle.initiated = true;
+                    //battle commence animation
+                    gsap.to('#battleTransitionBlack', {
+                        opacity: 1,
+                        repeat: 3,
+                        yoyo: true, //smoothens animation & returns to org css styling
+                        duration: 0.4,
+                        onComplete() {
+                            gsap.to('#battleTransitionBlack', {
+                                opacity: 1,
+                                duration: 0.4,
+                                onComplete() {
+                                    //activate new animation loop
+                                    animateBattle();
+
+                                    gsap.to('#battleTransitionBlack', {
+                                        opacity: 0,
+                                        duration: 0.4,
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    break; 
+                }
+            };
+        }
+    }
 
     //---playerSprite movements registered---
     //---collision handling---
@@ -156,7 +240,6 @@ function animate() {
                     y: boundary.position.y+3    //'predicting' 1 move into the future
                 }}
             })) {
-                console.log("out");
                 allowMovement = false;
                 break;  //exit loop once collision noted 
             };
@@ -180,7 +263,6 @@ function animate() {
                     y: boundary.position.y    
                 }}
             })) {
-                console.log("out");
                 allowMovement = false;
                 break;   
             };
@@ -204,7 +286,6 @@ function animate() {
                     y: boundary.position.y-3    
                 }}
             })) {
-                console.log("out");
                 allowMovement = false;
                 break;   
             };
@@ -228,7 +309,6 @@ function animate() {
                     y: boundary.position.y    
                 }}
             })) {
-                console.log("out");
                 allowMovement = false;
                 break;   
             };
@@ -242,6 +322,43 @@ function animate() {
     } 
 }
 animate();
+
+const battleBackgroundImg = new Image();
+battleBackgroundImg.src = './images/battleBackground.png';
+const battleBackground = new Sprite({
+    position: {
+        x: 0,
+        y: 0
+    },
+    image: battleBackgroundImg
+});
+
+const draggleBattleSpriteImg = Image();
+draggleBattleSpriteImg.src = './images/draggleSprite.png';
+const draggleBattleSprite = new Sprite({
+    position: {
+        //add in later
+        x: 0,
+        y: 0
+    },
+    image: draggleBattleSpriteImg
+});
+
+const embyBattleSpriteImg = Image();
+embyBattleSpriteImg.src = './images/embySprite.png';
+const embyBattleSprite = new Sprite({
+    position: {
+        x: 0,
+        y: 0
+    },
+    image: embyBattleSpriteImg
+});
+
+function animateBattle() {
+    window.requestAnimationFrame(animateBattle);
+    battleBackground.draw();
+    console.log('battle');  
+}
 
 let lastKey = '';
 window.addEventListener('keypress', (e) => {
